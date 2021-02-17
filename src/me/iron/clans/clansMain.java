@@ -1,3 +1,4 @@
+import api.DebugFile;
 import api.config.BlockConfig;
 import api.listener.events.controller.ClientInitializeEvent;
 import api.listener.events.controller.ServerInitializeEvent;
@@ -20,17 +21,6 @@ public class clansMain extends StarMod {
         super();
     }
 
-    public void onGameStart() {
-        super.onGameStart();
-        this.setModVersion("0.0.0 - basic tests");
-        this.setModName("Clans");
-        this.setModAuthor("IR0NSIGHT");
-        this.setModSMVersion("dev - v0.202.108");
-        this.setModDescription("filling the void");
-        //this.setSMDResourceId(8166);
-        // this.addDependency("StarAPI");
-
-    }
     @Override
     public void onEnable() {
         super.onEnable();
@@ -45,6 +35,7 @@ public class clansMain extends StarMod {
     @Override
     public void onServerCreated(ServerInitializeEvent event) {
         super.onServerCreated(event);
+        DebugFile.log("clans mod running OnServerCreated",instance);
         DebugChatEvent.addDebugChatListener();
 
     }
