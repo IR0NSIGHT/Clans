@@ -1,3 +1,5 @@
+import org.hsqldb.lib.Collection;
+import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 
 /**
@@ -8,6 +10,12 @@ import org.schema.common.util.linAlg.Vector3i;
  */
 public class debugMain {
     public static void main(String[] x) {
-        PirateManager.SpawnRaid(new Vector3i(0,8,100),5);
+        //PirateManager.SpawnRaid(new Vector3i(0,8,100),5);
+        Collection clone = null;
+        if (clone.contains("hello")) {
+            System.out.println("hi");
+        } else {
+            System.out.println("meep");
+        }
     }
 }
