@@ -15,6 +15,7 @@ import org.schema.game.common.data.player.PlayerControlledTransformableNotFound;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.common.data.player.catalog.CatalogPermission;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
+import org.schema.game.server.ai.ShipAIEntity;
 import org.schema.game.server.controller.BluePrintController;
 import org.schema.game.server.controller.EntityAlreadyExistsException;
 import org.schema.game.server.controller.EntityNotFountException;
@@ -23,8 +24,10 @@ import org.schema.game.server.data.ServerConfig;
 import org.schema.game.server.data.blueprintnw.BlueprintClassification;
 import org.schema.game.server.data.blueprintnw.BlueprintType;
 import org.schema.game.server.data.simulation.SimulationManager;
+import org.schema.schine.ai.stateMachines.State;
 
 import javax.vecmath.Vector2d;
+import javax.vecmath.Vector3f;
 import java.io.IOException;
 import java.util.*;
 
@@ -106,6 +109,20 @@ public class DebugChatEvent {
                 }
                 if (e.getText().contains("fleet")) {
                     SpawnFleet(firstControlledTransformable,BlueprintType.SHIP,100000,GetEnemyBlueprints(),-1);
+                }
+                if (e.getText().contains("AI")) {
+                    //TODO get nearby pirate ships, debug those//;
+                    for (SegmentController shipX: GetAllShipsInSector(player.getCurrentSector())) {
+                        GetShipAI(shipX);
+                    }
+
+                }
+                if (e.getText().contains("follow")) {
+                    //get all ships
+                    DebugFile.log("trying to move all ships towards player.");
+                    for (SegmentController ship: GetAllShipsInSector(player.getCurrentSector())) {
+                        ShipMoveTo(firstControlledTransformable,ship);
+                    }
                 }
             }
 
@@ -309,12 +326,110 @@ public class DebugChatEvent {
         }
     }
 
+    /**
+     * will try and debug the ships AI
+     * @param ship
+     */
     public static void GetShipAI(SegmentController ship) {
         //stolen from schema code (from segmentcontroller overheat core method)
-        if (ship instanceof SegmentControllerAIInterface) {
-            ((AIGameSegmentControllerConfiguration) ((SegmentControllerAIInterface) ship).getAiConfiguration()).onStartOverheating(from);
+        if (ship == null) {
+            DebugFile.log("ship is null");
+            return;
+        }
+        if (! (ship instanceof SegmentControllerAIInterface)) {
+          DebugFile.log("ship" + ship.getName() + "is not instance of SegmentControllerAIInterface");
+          return;
+        }
+        DebugFile.log("############## AI for ship " + ship.getName());
+        AIGameSegmentControllerConfiguration scConfig = ((AIGameSegmentControllerConfiguration) ((SegmentControllerAIInterface) ship).getAiConfiguration());
+        DebugFile.log("ship has AIGameSegmentControllerConfiguration");
+
+        boolean activeAI = scConfig.isActiveAI();
+        DebugFile.log("ship is active AI: " + activeAI);
+
+        String lastAIEntityStateString = scConfig.getAiEntityState().toString();
+        DebugFile.log("last AI entity state: " + lastAIEntityStateString);
+
+        if (!activeAI) {
+            DebugFile.log("aborting here bc not active AI.");
+            return;
+        }
+        State lastAIState = scConfig.getLastAiState();
+        if (lastAIState == null) {
+            DebugFile.log("lastAiState null");
+        } else {
+            String lastAIStateString = scConfig.getLastAiState().toString();
+            DebugFile.log("last AI state: " + lastAIEntityStateString);
+        };
+
+        DebugFile.log("last engange:" + scConfig.getAiEntityState().lastEngage,clansMain.instance);
+
+        //try getting shipAIEntity
+        if (!(scConfig.getAiEntityState() instanceof  ShipAIEntity)) {
+            DebugFile.log("not ship AI type");
+            return;
         }
     }
 
+    /**
+     * attempt to make ship move to a target position in its sector (trying to understand shipAIEntity.moveTo
+     * @param target
+     * @param ship
+     */
+    public static void ShipMoveTo(SimpleTransformableSendableObject target, SegmentController ship) {
+        if (ship == null || !(ship instanceof SegmentControllerAIInterface) || target == null) {
+            DebugFile.log("ship or target either null or not instance of AI interface");
+            return;
+        }
+        DebugFile.log("trying to move ship: " + ship.getName() + "towards " + target.getName());
+
+        //get ship ai config thing
+        AIGameSegmentControllerConfiguration scConfig = ((AIGameSegmentControllerConfiguration) ((SegmentControllerAIInterface) ship).getAiConfiguration());
+        //get actual ship AI from config thing
+        ShipAIEntity shipAI = (ShipAIEntity) scConfig.getAiEntityState();
+        DebugFile.log("AI is ShipAI.");
+        DebugFile.log("trying to make AI ship move to 0,0,0");
+        //direction = target.pos - ship.pos
+        Vector3f targetPos = target.getWorldTransform().origin;
+        Vector3f shipPos = ship.getWorldTransform().origin;
+        DebugFile.log("target at: " + targetPos +", ship at " + shipPos);
+        shipPos.negate(); //negative to subtract from targetpos
+        targetPos.add(shipPos); //targetpos = targetDirection
+        DebugFile.log("direction from ship to target: " + targetPos);
+        shipAI.moveTo(GameServerState.instance.getController().getTimer(),targetPos,true);
+    }
+
+    /**
+     * get all SegmentControllers in this sector
+     * @param sector
+     */
+    public static SegmentController[] GetAllShipsInSector(Vector3i sector) {
+        Set<SimpleTransformableSendableObject<?>> entities = null;
+        try {
+            entities = GameServer.getUniverse().getSector(sector).getEntities();
+        } catch (IOException e) {
+            DebugFile.logError(e,clansMain.instance);
+            e.printStackTrace();
+            return new SegmentController[0];
+        };
+        DebugFile.log("getting all ships in sector" + sector + ", counted " +entities.size());
+        for (SimpleTransformableSendableObject entity : entities) {
+           if (!entity.isSegmentController()) {
+               entities.remove(entity);
+           }
+        }
+        DebugFile.log("removed non segmentcontrollers, remaining: " + entities.size());
+        SegmentController[] array = new SegmentController[entities.size()];
+        SimpleTransformableSendableObject[] arrayOld = new SimpleTransformableSendableObject[entities.size()];
+        entities.toArray(arrayOld);
+        for (int i = 0; i < array.length; i++) { //TODO avoid having null values in array
+            SimpleTransformableSendableObject obj = arrayOld[i];
+            if (!(obj instanceof SegmentController)) {
+                continue;
+            }
+            array[i] = (SegmentController) arrayOld[i];
+        }
+        return array;
+    }
 }
 
