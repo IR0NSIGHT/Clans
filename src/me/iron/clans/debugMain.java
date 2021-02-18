@@ -1,3 +1,5 @@
+package me.iron.clans;
+
 import org.hsqldb.lib.Collection;
 import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;

@@ -1,3 +1,5 @@
+package me.iron.clans;
+
 import api.DebugFile;
 import api.ModPlayground;
 import api.common.GameServer;
@@ -5,16 +7,13 @@ import api.listener.Listener;
 import api.listener.events.player.PlayerChatEvent;
 import api.mod.StarLoader;
 import com.bulletphysics.linearmath.Transform;
-import com.sun.org.apache.xml.internal.resolver.CatalogEntry;
-import org.apache.poi.ss.formula.functions.T;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.client.controller.GameClientController;
+import org.schema.game.common.controller.SegmentController;
+import org.schema.game.common.controller.ai.AIGameSegmentControllerConfiguration;
+import org.schema.game.common.controller.ai.SegmentControllerAIInterface;
 import org.schema.game.common.data.player.PlayerControlledTransformableNotFound;
 import org.schema.game.common.data.player.PlayerState;
-import org.schema.game.common.data.player.catalog.CatalogManager;
 import org.schema.game.common.data.player.catalog.CatalogPermission;
-import org.schema.game.common.data.player.faction.Faction;
-import org.schema.game.common.data.player.faction.FactionManager;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.controller.BluePrintController;
 import org.schema.game.server.controller.EntityAlreadyExistsException;
@@ -231,6 +230,12 @@ public class DebugChatEvent {
         DebugFile.log(s,clansMain.instance);
     }
 
+    /**
+     * will sort out any blueprints that are not of given classification
+     * @param entries
+     * @param classification The blueprint classification, the player sets on saving the BP.
+     * @return
+     */
     public static CatalogPermission[] GetClassification(CatalogPermission[] entries,BlueprintClassification classification) {
         List<CatalogPermission> allowedEntries = new ArrayList<CatalogPermission>();
         String s = "received " + entries.length + "entries to sort for " + classification.getName();
@@ -249,6 +254,10 @@ public class DebugChatEvent {
         return returnArray;
     }
 
+    /**
+     * will get all enemy usable blueprints from the catalog manager
+     * @return
+     */
     public static CatalogPermission[] GetEnemyBlueprints() {
         Collection<CatalogPermission> entries = GameServerState.instance.getCatalogManager().getCatalog();
 
@@ -297,6 +306,13 @@ public class DebugChatEvent {
         @Override
         public int compare(CatalogPermission o1, CatalogPermission o2) {
             return (int) (o2.mass - o1.mass);
+        }
+    }
+
+    public static void GetShipAI(SegmentController ship) {
+        //stolen from schema code (from segmentcontroller overheat core method)
+        if (ship instanceof SegmentControllerAIInterface) {
+            ((AIGameSegmentControllerConfiguration) ((SegmentControllerAIInterface) ship).getAiConfiguration()).onStartOverheating(from);
         }
     }
 

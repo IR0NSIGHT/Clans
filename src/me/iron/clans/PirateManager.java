@@ -1,4 +1,4 @@
-/**
+package me.iron.clans; /**
  * STARMADE MOD
  * CREATOR: Max1M
  * DATE: 15.02.2021
@@ -8,11 +8,6 @@
 import api.DebugFile;
 import api.ModPlayground;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.server.controller.GameServerController;
-import org.schema.game.server.data.GameServerState;
-import org.schema.game.server.data.simulation.SimulationManager;
-import org.schema.game.server.data.simulation.jobs.SpawnPiratePatrolPartyJob;
-import org.schema.game.server.data.simulation.jobs.SpawnTradingPartyJob;
 
 import java.util.Random;
 

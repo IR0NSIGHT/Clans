@@ -6,8 +6,8 @@
   "starmade_version": "0.202.108",
   "client_mod": false,
   "server_mod": false,
-  "main_class": "clansMain",
-  "smd_resource_id": -1,
+  "main_class": "me.iron.clans.clansMain",
+  "smd_resource_id": 42069,
   "dependencies": [
     -1
   ],

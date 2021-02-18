@@ -1,9 +1,10 @@
+package me.iron.clans;
+
 import api.DebugFile;
 import api.config.BlockConfig;
 import api.listener.events.controller.ClientInitializeEvent;
 import api.listener.events.controller.ServerInitializeEvent;
 import api.mod.StarMod;
-import api.network.packets.PacketUtil;
 
 /**
  * STARMADE MOD
@@ -25,6 +26,8 @@ public class clansMain extends StarMod {
     public void onEnable() {
         super.onEnable();
         instance = this;
+        DebugFile.log("hello im clans mod and was enabled.");
+
     }
 
     @Override
@@ -37,7 +40,6 @@ public class clansMain extends StarMod {
         super.onServerCreated(event);
         DebugFile.log("clans mod running OnServerCreated",instance);
         DebugChatEvent.addDebugChatListener();
-
     }
 
     @Override
